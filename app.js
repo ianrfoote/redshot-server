@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const router = express.Router();
 const bcrypt = require('bcrypt');
+const { body, validationResult } = require('express-validator');
 const User = require('./models/user');
 
 router.post('/register',
@@ -16,7 +17,7 @@ router.post('/register',
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    
+
     const { username, email, password } = req.body;
   
     // Check if the user already exists
