@@ -1,54 +1,29 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const router = express.Router();
-const bcrypt = require('bcrypt');
 const { body, validationResult } = require('express-validator');
 const User = require('./models/user');
 
-router.post('/register',
-  [
-    body('username').notEmpty().withMessage('Username is required'),
-    body('email').isEmail().withMessage('Email must be a valid email address'),
-    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long')
-  ],
-  async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+const userRouter = require('./user');
 
-    const { username, email, password } = req.body;
-  
-    // Check if the user already exists
-    const userExists = await User.findOne({ $or: [{ username }, { email }] });
-    if (userExists) {
-      return res.status(409).json({ message: 'User already exists' });
-    }
-  
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
-  
-    // Create a new user
-    const newUser = new User({
-      username,
-      email,
-      password: hashedPassword,
-    });
-  
-    // Save the new user to the database
-    await newUser.save();
-  
-    res.status(201).json({ message: 'User created successfully' });
+const mongoose = require('mongoose');
+
+const connectionString = 'mongodb+srv://redshot:redshot@redshot.1hv3c0t.mongodb.net/?retryWrites=true&w=majority';
+mongoose.connect(connectionString, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => {
+  console.log('Connected to MongoDB Atlas');
+})
+.catch((err) => {
+  console.log('Error connecting to MongoDB Atlas', err);
 });
-  
-module.exports = router;
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-const userRouter = require('./user');
 app.use('/user', userRouter);
 
 // Route for uploading player photos
